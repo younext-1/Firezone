@@ -2,10 +2,19 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import { Map as MapLibreMap, NavigationControl, ScaleControl, Marker, Popup, GeoJSONSource } from 'maplibre-gl';
+import { Map as MapLibreMap, NavigationControl, ScaleControl, Marker, Popup, GeoJSONSource, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { ActiveFireHotspot, FireHotspotGeoJSONCollection } from '@/types/nasa';
 import { NASA_GIBS_LAYERS, getGibsTileUrl, MOROCCO_STUDY_ZONES } from '@/config/nasaGibsLayers';
+
+// Configure MapLibre Web Worker for Next.js / Turbopack
+if (typeof window !== 'undefined') {
+  try {
+    setWorkerUrl(`${window.location.origin}/worker/maplibre-gl-worker.mjs`);
+  } catch (err) {
+    console.warn('Failed to configure MapLibre worker URL:', err);
+  }
+}
 import {
   Flame,
   Satellite,
@@ -78,7 +87,8 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
   // Initialize MapLibre
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    // Ensure worker URL is set to static public asset
+    setWorkerUrl(`${window.location.origin}/worker/maplibre-gl-worker.mjs`);
 
     // Default centered on Morocco (Essaouira - Atlas - Rif span)
     const map = new MapLibreMap({
